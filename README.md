@@ -1,1 +1,10 @@
-AI-powered ATS Resume Matching system built with Python. Supports CV parsing, job description analysis, evidence extraction and candidate scoring.
+## Features
+
+- Read PDF, DOCX and TXT resumes
+- Parse job descriptions
+- Extract resume sections
+- Extract job requirements
+- Evidence extraction
+- Resume-job matching
+- ATS-style scoring
+- Modular architecture

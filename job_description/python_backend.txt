@@ -1,0 +1,27 @@
+Python Backend Developer
+
+Requirements
+
+Python
+
+SQL
+
+Git
+
+Docker
+
+Linux
+
+REST API
+
+Bachelor Degree
+
+3+ years experience
+
+Responsibilities
+
+Develop backend services.
+
+Write clean code.
+
+Maintain APIs.

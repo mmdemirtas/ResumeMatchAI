@@ -1,4 +1,5 @@
 from extractors.evidence_extractor import EvidenceExtractor
+from pathlib import Path
 
 
 class ResumeMatcher:
@@ -51,3 +52,28 @@ class ResumeMatcher:
             "skills": report
 
         }
+    def load_cvs(self, folder):
+
+      folder = Path(folder)
+
+      cvs = []
+
+      for file in folder.iterdir():
+
+        if not file.is_file():
+            continue
+
+        if file.suffix.lower() not in [".pdf", ".docx", ".txt"]:
+            continue
+
+        try:
+
+            cv = self.load_cv(file)
+
+            cvs.append(cv)
+
+        except Exception as e:
+
+            print(f"{file.name} okunamadi : {e}")
+
+      return cvs

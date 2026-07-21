@@ -1,5 +1,7 @@
 from search.semantic_search import SemanticSearch
 from knowledge.requirement_expander import RequirementExpander
+from matchers.education_matcher import EducationMatcher
+from matchers.experience_matcher import ExperienceMatcher
 
 
 class ResumeMatcher:
@@ -8,6 +10,9 @@ class ResumeMatcher:
 
         self.search = SemanticSearch()
         self.expander = RequirementExpander()
+        self.education_matcher = EducationMatcher()
+        self.experience_matcher = ExperienceMatcher()
+        
 
     def match(self, cv, job):
 
@@ -49,6 +54,14 @@ class ResumeMatcher:
                 "score": round(best_score, 3),
                 "evidence": results
               }
+        education = self.education_matcher.match(
+         cv,
+         job
+        )
+        experience = self.experience_matcher.match(
+         cv,
+         job
+        )
 
         score = 0
 
@@ -59,7 +72,9 @@ class ResumeMatcher:
             "score": score,
             "matched": matched,
             "total": total,
-            "skills": report
+            "skills": report,
+            "education": education,
+            "experience": experience
         }
 
     def match_all(self, cvs, job):

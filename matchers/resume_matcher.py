@@ -1,19 +1,15 @@
-from extractors.evidence_extractor import EvidenceExtractor
-from pathlib import Path
+from search.semantic_search import SemanticSearch
+from knowledge.requirement_expander import RequirementExpander
 
 
 class ResumeMatcher:
 
     def __init__(self):
 
-        self.extractor = EvidenceExtractor()
+        self.search = SemanticSearch()
+        self.expander = RequirementExpander()
 
     def match(self, cv, job):
-
-        evidence = self.extractor.extract(
-            cv,
-            job.required_skills
-        )
 
         report = {}
 
@@ -23,18 +19,36 @@ class ResumeMatcher:
 
         for skill in job.required_skills:
 
-            found = len(evidence[skill]) > 0
+            expanded = self.expander.expand(skill)
+
+            results = self.search.search(
+                expanded,
+                cv,
+                top_k=3
+            )
+
+            best_score = results[0]["score"] if results else 0
+
+            found = best_score >= 0.45
 
             if found:
                 matched += 1
+            
+            print("\n")
+            print("=" * 50)
+            print(skill)
+            print(f"Expanded : {expanded}")
+            print(f"Best Score : {best_score:.3f}")
 
-            report[skill] = {
+            if results:
 
+              print(results[0]["text"])
+
+              report[skill] = {
                 "found": found,
-
-                "evidence": evidence[skill]
-
-            }
+                "score": round(best_score, 3),
+                "evidence": results
+              }
 
         score = 0
 
@@ -42,38 +56,31 @@ class ResumeMatcher:
             score = round((matched / total) * 100)
 
         return {
-
             "score": score,
-
             "matched": matched,
-
             "total": total,
-
             "skills": report
-
         }
-    def load_cvs(self, folder):
 
-      folder = Path(folder)
+    def match_all(self, cvs, job):
 
-      cvs = []
+        ranking = []
 
-      for file in folder.iterdir():
+        for cv in cvs:
 
-        if not file.is_file():
-            continue
+            result = self.match(cv, job)
 
-        if file.suffix.lower() not in [".pdf", ".docx", ".txt"]:
-            continue
+            ranking.append({
+                "candidate": cv.file_name,
+                "score": result["score"],
+                "matched": result["matched"],
+                "total": result["total"],
+                "details": result["skills"]
+            })
 
-        try:
+        ranking.sort(
+            key=lambda x: x["score"],
+            reverse=True
+        )
 
-            cv = self.load_cv(file)
-
-            cvs.append(cv)
-
-        except Exception as e:
-
-            print(f"{file.name} okunamadi : {e}")
-
-      return cvs
+        return ranking

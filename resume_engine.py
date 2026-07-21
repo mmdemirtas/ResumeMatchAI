@@ -8,6 +8,8 @@ from parsers.docx_parser import DocxParser
 from extractors.section_extractor import SectionExtractor
 from extractors.job_section_extractor import JobSectionExtractor
 from extractors.requirement_extractor import RequirementExtractor
+from extractors.sentence_extractor import SentenceExtractor
+from ResumeMatchAI.embedding_engine import EmbeddingEngine
 
 
 class ResumeEngine:
@@ -18,6 +20,8 @@ class ResumeEngine:
         self.section_extractor = SectionExtractor()
         self.job_section_extractor = JobSectionExtractor()
         self.requirement_extractor = RequirementExtractor()
+        self.sentence_extractor = SentenceExtractor()
+        self.embedding_engine = EmbeddingEngine()
 
     def load_cv(self,file_path):
 
@@ -45,8 +49,52 @@ class ResumeEngine:
 
         cv.sections = self.section_extractor.extract(text)
 
+        cv.sentences = self.sentence_extractor.extract(
+          cv.sections
+        )
+
+        for sentence in cv.sentences:
+
+          embedding = self.embedding_engine.encode(
+          sentence["text"]
+          )
+
+          cv.embeddings.append(
+           {
+            "section": sentence["section"],
+            "text": sentence["text"],
+            "embedding": embedding
+            }
+          )
+
 
         return cv
+    
+    def load_cvs(self, folder):
+
+      folder = Path(folder)
+
+      cvs = []
+
+      for file in folder.iterdir():
+
+        if not file.is_file():
+            continue
+
+        if file.suffix.lower() not in [".pdf", ".docx", ".txt"]:
+            continue
+
+        try:
+
+            cv = self.load_cv(file)
+
+            cvs.append(cv)
+
+        except Exception as e:
+
+              print(f"{file.name} okunamadi : {e}")
+
+      return cvs
     
     def load_job(self, file):
 
@@ -82,6 +130,38 @@ class ResumeEngine:
       job.required_experience = experience
 
       return job
+    
+    def match_all(self, cvs, job):
+
+      results = []
+
+      for cv in cvs:
+
+        result = self.match(cv, job)
+
+        results.append({
+
+            "candidate": cv.file_name,
+
+            "score": result["score"],
+
+            "matched": result["matched"],
+
+            "total": result["total"],
+
+            "details": result["skills"]
+
+        })
+
+      results.sort(
+
+        key=lambda x: x["score"],
+
+        reverse=True
+
+      )
+
+      return results
 
         
     

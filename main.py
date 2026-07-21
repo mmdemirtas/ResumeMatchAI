@@ -1,46 +1,31 @@
 from resume_engine import ResumeEngine
 from matchers.resume_matcher import ResumeMatcher
+from extractors.evidence_extractor import EvidenceExtractor
 
+from ResumeMatchAI.semantic_matcher import SemanticMatcher
+from extractors.sentence_extractor import SentenceExtractor
+from search.semantic_search import SemanticSearch
 
 engine = ResumeEngine()
 
-# CV yükle
-cv = engine.load_cv(
-    "sample_cv/ZiyaKutayKatlandurCV.docx"
-)
+cvs = engine.load_cvs("sample_cv")
 
-# İş ilanını yükle
 job = engine.load_job(
     "job_description/python_backend.txt"
 )
 
-# Eşleştir
 matcher = ResumeMatcher()
 
-result = matcher.match(cv, job)
+ranking = matcher.match_all(cvs, job)
 
+print("\nRANKING")
 print("=" * 60)
-print("RESUME MATCH REPORT")
-print("=" * 60)
 
-print(f"\nOverall Match Score : %{result['score']}")
-print(f"Matched Skills      : {result['matched']} / {result['total']}")
+for i, candidate in enumerate(ranking, start=1):
 
-print("\n" + "=" * 60)
+    print(f"{i}. {candidate['candidate']}")
+    print(f"Score   : {candidate['score']}%")
+    print(f"Matched : {candidate['matched']} / {candidate['total']}")
+    print("-" * 60)
 
-for skill, info in result["skills"].items():
 
-    status = "✓" if info["found"] else "✗"
-
-    print(f"\n{status} {skill}")
-
-    if not info["found"]:
-        continue
-
-    for item in info["evidence"]:
-
-        print(f"\n[{item['section'].upper()}]")
-
-        print(item["text"])
-
-        print("-" * 40)
